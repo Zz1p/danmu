@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="root" style="position: relative; width:1000px; height: 1000px; border: 1px solid black"></div>
+</body>
+<script>
+    /**
+     * speed 弹幕移动的速度； fontSize：字体大小； direction：方向； from：弹幕出现的时间，color： 字体的颜色
+     * */
+
+    class Danmu {
+        constructor(portal) {
+            this.portal = portal;
+            this.rect = portal.getBoundingClientRect();
+            this.dom.style.position = 'absolute';
+            this.dom.style.left = '0';
+            this.dom.style.right = '0';
+            this.dom.style.top = '0';
+            // 半屏的弹幕
+            this.dom.style.height = this.rect.height / 2 + 'px';
+            portal.appendChild(this.dom);
+        }
+
+        rect = null;
+
+        // 最终挂载的节点
+        portal = null;
+
+        // 弹幕容器
+        dom = document.createElement('div');
+        computedStyle = {};
+
+        pool = [];
+
+        add = (params) => {
+            if (typeof params === 'string') {
+                this.pool.push({content: params});
+            } else {
+                const {
+                    content = '',
+                    speed = 0,
+                    from = 0,
+                    style = {
+                        'font-size': '14',
+                        'color': '#333',
+                        // opacity, color, text-shadow,
+                    }
+                } = params;
+                this.pool.push(params);
+            }
+
+            //  可优化
+            this.send();
+        }
+
+        getComputedStyle = (danmu, speed = 1) => {
+            const rect = danmu.getBoundingClientRect();
+            danmu.style.transform = `translateX(-${this.rect.width + rect.width}px)`;
+            danmu.style.transition = `${10 / speed}s`;
+            danmu.style['transition-delay'] = '1s';
+            danmu.style['transition-timing-function'] = 'linear';
+        }
+
+        send = () => {
+            const node = this.pool.shift();
+            const danmu = document.createElement('div');
+            danmu.style = node.style;
+            danmu.innerText = node.content;
+            danmu.style.position = 'absolute';
+            danmu.style.left = '100%';
+            danmu.style['white-space'] = 'pre';
+            // top可以设置 line-height * Math.random()
+            danmu.style.top = '0';
+            this.dom.appendChild(danmu);
+            this.getComputedStyle(danmu, node.speed);
+        }
+
+        // 销毁弹幕
+        disposer = () => {
+        }
+    }
+
+    const root = document.getElementById('root');
+    const danmuContainer = new Danmu(root)
+    window.danmuContainer = danmuContainer;
+</script>
+</html>
